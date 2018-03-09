@@ -9,21 +9,21 @@ apply_troiano(agdb, activity_threshold = 0, min_period_len = 60,
   use_magnitude = FALSE, endat_nnz_seq = TRUE)
 }
 \arguments{
-\item{agdb}{A \code{tibble} (\code{tbl}) of activity data (at least) an \code{epochlength} attribute. The epoch length must be 60 seconds.}
+\item{agdb}{A \code{tibble} (\code{tbl}) of activity data (at least) an \code{epochlength} attribute.}
 
-\item{activity_threshold}{Highest activity level to be considered "zero"; an epoch with activity exceeding the threshold is considered a "spike". The default threshold is 0.}
+\item{activity_threshold}{Highest activity per minute level to be considered "zero"; an epoch with activity exceeding the threshold is considered a "spike". The default threshold is 0.}
 
-\item{min_period_len}{Minimum number of consecutive "zero" epoch to start a non-wear period. The default is 60.}
+\item{min_period_len}{Minimum number of consecutive "zero" minutes to start a non-wear period. The default is 60.}
 
-\item{max_nonzero_count}{Epochs with activity greater than \code{max_nonzero_count} are labeled as "zero". The default is Inf.}
+\item{max_nonzero_count}{Epochs with activity greater than \code{max_nonzero_count} per minute are labeled as "zero". The default is Inf.}
 
-\item{spike_tolerance}{Also known as artifactual movement interval. At most \code{spike_tolerance} "nonzero" epochs can occur in sequence during a non-wear period without interrupting it. The default is 2.}
+\item{spike_tolerance}{Also known as artifactual movement interval. At most \code{spike_tolerance} "nonzero" minutes can occur in sequence during a non-wear period without interrupting it. The default is 2.}
 
-\item{spike_stoplevel}{An activity spike that exceeds \code{spike_stoplevel} counts ends a non-wear period, even if the spike tolerance has not been reached. The default is 100.}
+\item{spike_stoplevel}{An activity spike that exceeds \code{spike_stoplevel} per minute counts ends a non-wear period, even if the spike tolerance has not been reached. The default is 100.}
 
-\item{use_magnitude}{Logical. If true, the magnitude of the vector (axis1, axis2, axis3) is used to measure activity; otherwise the axis1 value is used. The default is FALSE.}
+\item{use_magnitude}{Logical. If true, the magnitude of the axis vector (e.g., axis1, axis2, axis3) is used to measure activity; otherwise the axis1 value is used. The default is FALSE.}
 
-\item{endat_nnz_seq}{Logical. If true, a non-wear period ends with a run of nonzero epochs that is longer than \code{spike_tolerance}. This corresponds to the option \emph{"Require consecutive epochs outside of the activity threshold"} in ActiLife's Wear Time Validation menu. The default is TRUE.}
+\item{endat_nnz_seq}{Logical. If true, a non-wear period ends with a run of nonzero minutes that is longer than \code{spike_tolerance}. This corresponds to the option \emph{"Require consecutive epochs outside of the activity threshold"} in ActiLife's Wear Time Validation menu. The default is TRUE.}
 }
 \value{
 A summary \code{tibble} of the detected non-wear periods. If the activity data is grouped, then non-wear periods are detected separately for each group.
@@ -32,9 +32,9 @@ A summary \code{tibble} of the detected non-wear periods. If the activity data i
 The Troiano algorithm detects periods of non-wear in activity data from an ActiGraph device. Such intervals are likely to represent invalid data and therefore should be excluded from downstream analysis. The algorithm formalizes a technique used to analyze the 2003-2004 NHANES data; the original SAS source code can be found at \url{http://riskfactor.cancer.gov/tools/nhanes_pam/}.
 }
 \details{
-The Troiano algorithm specifies that a non-wear period starts with \code{min_period_len} consecutive epochs/minutes of "zero" activity and ends with more than \code{spike_tolerance} epochs/minutes of "nonzero" activity.
+The Troiano algorithm specifies that a non-wear period starts with \code{min_period_len} consecutive minutes of "zero" activity and ends with more than \code{spike_tolerance} minutes of "nonzero" activity.
 
-This implementation of the algorithm expects 60s epochs.
+This implementation of the algorithm has been adapted to epoch lengths that are divisors of 60. Function parameters are denominated in minutes and then converted to appropriate values in epochs. For example, when using data with 30-second epochs, setting \code{activity_threshold} to 100 is interpreted as 100 counts per minute, which would be converted to 50 per 30-second epoch, and specifying a \code{spike_tolerance} of 10 is interpreted as 10 minutes, which would be converted to 20 30-second epochs. This conversion does not necessarily produce equivalent results between different epoch lengths. Two sequential 30-second epochs may have activity counts of 51 and 0, the first of which would be above a \code{spike_stoplevel} of 100 counts per minute (50 counts per 30 seconds). However, an equivalent 60-second epoch would have an activity count of 51, which would fall below the same threshold.
 }
 \examples{
 library("dplyr")
