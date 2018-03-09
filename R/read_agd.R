@@ -40,7 +40,7 @@ read_agd <- function(file, tz = "UTC") {
   agdb <- read_agd_raw(file, tz)
   data <- agdb$data %>%
     rename_all(tolower) %>%
-    rename(timestamp = .data$datatimestamp) %>%
+    rename(timestamp = datatimestamp) %>%
     mutate_if(is.numeric, as.integer)
 
   # The settings are stored in a table with settingName, settingValue
@@ -48,8 +48,8 @@ read_agd <- function(file, tz = "UTC") {
   # timestamps. I typecast the most salient settings appropriately.
   settings <- agdb$settings %>%
     rename_all(tolower) %>%
-    select(.data$settingname, .data$settingvalue) %>%
-    spread(.data$settingname, .data$settingvalue) %>%
+    select(settingname, settingvalue) %>%
+    spread(settingname, settingvalue) %>%
     mutate_at(vars(matches("dateOfBirth")), ticks_to_dttm, tz = tz) %>%
     mutate_at(vars(ends_with("time")), ticks_to_dttm, tz = tz) %>%
     mutate_at(vars(starts_with("epoch")), as.integer)
