@@ -4,7 +4,7 @@
 #' @param agdb A \code{tibble} (\code{tbl}) of activity data (at least) an \code{epochlength} attribute.
 #' @param epoch_len_out Output (longer) epoch length in seconds, must be exact multiple of the input epoch length.
 #' @param use_incomplete logical. Set to \code{TRUE} to follow ActiLife convention, which collapses all observed epochs even if they are incomplete.
-#' @return A \code{tibble} (\code{tbl}) of activity data collapsed into new epochs of specified length.
+#' @return A \code{tibble} (\code{tbl}) of activity data collapsed into epochs of specified length.
 #' @references ActiLife 6 User's Manual by the ActiGraph Software Department. 04/03/2012.
 #' @details
 #' Output epochs start at the first timestamp of the input data.
@@ -32,7 +32,7 @@ collapse_epochs <- function(agdb, epoch_len_out,
 
   attr(agdb, "epochlength") <- epoch_len_out
   attr(agdb, "epochcount") <- nrow(agdb)
-  
+
   agdb
 }
 
@@ -46,14 +46,13 @@ collapse_epochs_ <- function(data, epoch_len_out, collapse_factor, use_incomplet
 
   data <- data %>%
     select_at(vars("timestamp", selected)) %>%
-    mutate(timestamp = .data$timestamp[1] + 
-           seconds(floor(difftime(.data$timestamp, .data$timestamp[1], units = "secs") / epoch_len_out) * epoch_len_out)) %>%
+    mutate(timestamp = first(timestamp) + seconds(floor(time_length(timestamp - first(timestamp), "second") / epoch_len_out) * epoch_len_out)) %>%
     mutate(n = 1L) %>%
-    group_by(.data$timestamp) %>%
+    group_by(timestamp) %>%
     summarise_all(sum)
 
   if (!use_incomplete) {
-    data <- data %>% filter(.data$n == collapse_factor)
+    data <- data %>% filter(n == collapse_factor)
   }
 
   data %>% select(-n)
