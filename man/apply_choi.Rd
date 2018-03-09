@@ -8,15 +8,15 @@ apply_choi(agdb, min_period_len = 90, min_window_len = 30,
   spike_tolerance = 2, use_magnitude = FALSE)
 }
 \arguments{
-\item{agdb}{A \code{tibble} (\code{tbl}) of activity data (at least) an \code{epochlength} attribute. The epoch length must be 60 seconds.}
+\item{agdb}{A \code{tibble} (\code{tbl}) of activity data (at least) an \code{epochlength} attribute. The epoch length must be an exact divisor of 60.}
 
-\item{min_period_len}{Minimum number of consecutive "zero" epochs to start a non-wear period. The default is 90.}
+\item{min_period_len}{Minimum number of consecutive "zero" minutes to start a non-wear period. The default is 90.}
 
-\item{min_window_len}{The minimum number of consecutive "zero" epochs immediately preceding and following a spike of artifactual movement. The default is 30.}
+\item{min_window_len}{The minimum number of consecutive "zero" minutes immediately preceding and following a spike of artifactual movement. The default is 30.}
 
-\item{spike_tolerance}{Also known as artifactual movement interval. At most \code{spike_tolerance} "nonzero" epochs can occur in sequence during a non-wear period without interrupting it. The default is 2.}
+\item{spike_tolerance}{Also known as artifactual movement interval. At most \code{spike_tolerance} "nonzero" minutes can occur in sequence during a non-wear period without interrupting it. The default is 2.}
 
-\item{use_magnitude}{Logical. If true, the magnitude of the vector (axis1, axis2, axis3) is used to measure activity; otherwise the axis1 value is used. The default is FALSE.}
+\item{use_magnitude}{Logical. If true, the magnitude of the axis vector (e.g., axis1, axis2, axis3) is used to measure activity; otherwise the axis1 value is used. The default is FALSE.}
 }
 \value{
 A summary \code{tibble} of the detected non-wear periods. If the activity data is grouped, then non-wear periods are detected separately for each group.
@@ -27,7 +27,7 @@ The Choi algorithm detects periods of non-wear in activity data from an ActiGrap
 \details{
 The Choi algorithm extends the Troiano algorithm by requiring that short spikes of artifactual movement during a non-wear period are preceded and followed by \code{min_window_len} consecutive "zero" epochs.
 
-This implementation of the algorithm expects that the epochs are 60 second long.
+This implementation of the algorithm has been adapted to epoch lengths that are divisors of 60.
 }
 \examples{
 library("dplyr")
