@@ -36,9 +36,9 @@ check_args_sleep_periods <- function(agdb, algorithm) {
   check_no_missing_timestamps(agdb)
   check_no_missing_state(agdb)
 }
-check_args_nonwear_periods <- function(agdb, algorithm,
-                                       use_magnitude) {
-  check_epochlen_is_60(agdb, algorithm)
+check_args_nonwear_periods <- function(agdb, use_magnitude) {
+  if (60 %% attr(agdb, "epochlength"))
+    stop("Epochs should be exact divisors of 60.")
   check_no_missing_timestamps(agdb)
   check_no_missing_counts(agdb, "axis1")
   if (use_magnitude) {
