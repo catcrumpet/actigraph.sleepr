@@ -93,7 +93,8 @@ apply_tudor_locke <- function(agdb,
               n_wake_time_end = n_wake_time_end,
               min_sleep_period = min_sleep_period,
               max_sleep_period = max_sleep_period,
-              min_nonzero_epochs = min_nonzero_epochs)
+              min_nonzero_epochs = min_nonzero_epochs,
+              epochlength = attr(agdb, "epochlength"))
 
   if (is.grouped_df(agdb))
     sleep <- sleep %>% group_by(!!! groups(agdb))

@@ -52,7 +52,8 @@ apply_choi <- function(agdb,
               min_period_len = min_period_len,
               min_window_len = min_window_len,
               spike_tolerance = spike_tolerance,
-              use_magnitude = use_magnitude)
+              use_magnitude = use_magnitude,
+              epochlength = attr(agdb, "epochlength"))
 
   if (is.grouped_df(agdb))
     nonwear <- nonwear %>% group_by(!!! groups(agdb))

@@ -78,7 +78,8 @@ apply_troiano <- function(agdb,
               spike_stoplevel = spike_stoplevel,
               activity_threshold = activity_threshold,
               endat_nnz_seq = endat_nnz_seq,
-              use_magnitude = use_magnitude)
+              use_magnitude = use_magnitude,
+              epochlength = attr(agdb, "epochlength"))
 
   if (is.grouped_df(agdb))
     nonwear <- nonwear %>% group_by(!!! groups(agdb))
