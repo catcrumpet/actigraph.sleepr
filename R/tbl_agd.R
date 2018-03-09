@@ -23,8 +23,9 @@ special_dplyr_attributes <- function() {
 
 add_magnitude <- function(data) {
   data %>%
-    mutate(magnitude = sqrt(.data$axis1 ^ 2 + .data$axis2 ^ 2 +
-                              .data$axis3 ^ 2))
+    mutate(magnitude =
+             select(., matches("axis\\d")) %>%
+             apply(1, function(x) sqrt(sum(x ^ 2))))
 }
 
 wrap_dplyr_verb <- function(x, f, ...) {
