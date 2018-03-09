@@ -59,7 +59,7 @@ check_args_pa_scores <- function(agdb, age, algorithm) {
   check_no_missing_timestamps(agdb)
   check_no_missing_counts(agdb, "axis1")
 
-  if (is.na(age) | length(age) == 0)
+  if (length(age) == 0 | is.na(age))
     stop("Age is missing.")
   if (age < 6)
     stop("Age cannot be less than 6.")
