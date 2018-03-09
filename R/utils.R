@@ -16,22 +16,24 @@
 #' complement_periods(periods, epochs, start, end)
 #' @export
 complement_periods <- function(periods, epochs, start_var, end_var) {
-  if (!nrow(periods))
+  if (!nrow(periods)) {
     return(epochs %>%
-             summarise(period_start = first(.data$timestamp),
-                       period_end = last(.data$timestamp),
-                       length = time_length(.data$period_end -
-                                              .data$period_start, "min")))
+             summarise(period_start = first(timestamp),
+                       period_end = last(timestamp),
+                       length = time_length(period_end - period_start, "min")))
+  }
+
   start_var <- enquo(start_var)
   end_var <- enquo(end_var)
+
   combine_epochs_periods(epochs, periods, !!start_var, !!end_var) %>%
-    mutate(rev_id = rleid(is.na(.data$period_id))) %>%
-    filter(is.na(.data$period_id)) %>%
-    group_by(.data$rev_id, add = TRUE) %>%
-    summarise(period_start = first(.data$timestamp),
-              period_end = last(.data$timestamp),
+    mutate(rev_id = rleid(is.na(period_id))) %>%
+    filter(is.na(period_id)) %>%
+    group_by(rev_id, add = TRUE) %>%
+    summarise(period_start = first(timestamp),
+              period_end = last(timestamp),
               length = n()) %>%
-    select(- .data$rev_id)
+    select(-rev_id)
 }
 
 #' Expand a time period into a vector of equally spaced time points
@@ -62,32 +64,42 @@ expand_timestamp <- function(start, end, units = "1 min") {
 #'   apply_choi(min_period_len = 45) %>%
 #'   expand_periods(period_start, period_end, units = "30 mins")
 #' @export
-expand_periods <- function(periods, start_var, end_var,
-                           units = "1 min") {
+expand_periods <- function(periods, start_var, end_var, units = "1 min") {
   start_var <- enquo(start_var)
   end_var <- enquo(end_var)
+
+  if (!is.null(attr(periods, "epochlength")) &
+      period(units) != seconds(attr(periods, "epochlength"))) {
+    warning("Provided periods data has epochlength attribute, using that instead.")
+    units <- seconds(attr(periods, "epochlength"))
+  }
+
   periods %>%
     do(expand_periods_(.data, !!start_var, !!end_var, units))
 }
-expand_periods_ <- function(periods, start_var, end_var,
-                            units = "1 min") {
+expand_periods_ <- function(periods, start_var, end_var, units) {
   start_var <- enquo(start_var)
   end_var <- enquo(end_var)
   periods %>%
     mutate(period_id = row_number()) %>%
-    mutate(timestamp = map2(!!start_var, !!end_var, expand_timestamp,
-                            units)) %>%
-    select(.data$period_id, .data$timestamp) %>%
+    mutate(timestamp = map2(!!start_var, !!end_var, expand_timestamp, units)) %>%
+    select(period_id, timestamp) %>%
     unnest()
 }
 get_epoch_length <- function(epochs) {
 
-  if (!exists("timestamp", epochs)) return(NULL)
+  if (!exists("timestamp", epochs))
+    return(NULL)
 
-  epoch_len <- epochs %>%
-    mutate(len = time_length(.data$timestamp - lag(.data$timestamp))) %>%
+  epoch_len <-
+    epochs %>%
+    mutate(len = time_length(timestamp - lag(timestamp))) %>%
     filter(row_number() > 1) %>%
-    .$len
+    pull(len)
 
-  if (n_distinct(epoch_len) != 1) NULL else first(epoch_len)
+  if (n_distinct(epoch_len) != 1) {
+    NULL
+  } else {
+    first(epoch_len)
+  }
 }
