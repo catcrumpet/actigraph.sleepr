@@ -77,15 +77,19 @@ expand_periods <- function(periods, start_var, end_var, units = "1 min") {
   periods %>%
     do(expand_periods_(.data, !!start_var, !!end_var, units))
 }
+
 expand_periods_ <- function(periods, start_var, end_var, units) {
   start_var <- enquo(start_var)
   end_var <- enquo(end_var)
   periods %>%
     mutate(period_id = row_number()) %>%
-    mutate(timestamp = map2(!!start_var, !!end_var, expand_timestamp, units)) %>%
-    select(period_id, timestamp) %>%
-    unnest()
+    mutate(timestamp = map2(!!start_var, !!end_var,
+                            ~ expand_timestamp(.x, .y, units = units) %>%
+                              tibble(timestamp = .))) %>%
+    unnest(timestamp) %>%
+    select(period_id, timestamp)
 }
+
 get_epoch_length <- function(epochs) {
 
   if (!exists("timestamp", epochs))
@@ -102,4 +106,15 @@ get_epoch_length <- function(epochs) {
   } else {
     first(epoch_len)
   }
+}
+
+calculate_age <- function(from, to) {
+  from_lt <- as.POSIXlt(from)
+  to_lt <- as.POSIXlt(to)
+
+  age <- as.integer(to_lt$year - from_lt$year)
+
+  if_else(to_lt$mon < from_lt$mon |
+            (to_lt$mon == from_lt$mon & to_lt$mday < from_lt$mday),
+          age - 1L, age)
 }
