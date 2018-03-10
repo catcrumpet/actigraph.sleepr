@@ -99,10 +99,8 @@ apply_troiano_seq_ <- function(data,
   data %>%
     add_magnitude() %>%
     mutate(count = if (use_magnitude) magnitude else axis1,
-           wear =
-             case_when(count > activity_threshold & count <= max_nonzero_count ~ 1L,
-                       count > spike_stoplevel ~ 2L,
-                       TRUE ~ 0L)) %>%
+           wear = if_else(count <= activity_threshold | count > max_nonzero_count, 0L, 1L),
+           wear = if_else(count > spike_stoplevel, 2L, wear)) %>%
     group_by(rleid = rleid(wear)) %>%
     summarise(wear = first(wear),
               timestamp = first(timestamp),
@@ -116,7 +114,9 @@ apply_troiano_seq_ <- function(data,
            # Fill in NAs with the most recent zero/nonzero wear state
            wear = na.locf(wear)) %>%
     group_by(rleid = rleid(wear)) %>%
-    summarise(wear = first(wear), timestamp = first(timestamp), length = sum(length)) %>%
+    summarise(wear = first(wear),
+              timestamp = first(timestamp),
+              length = sum(length)) %>%
     filter(wear == 0L, length >= min_period_len) %>%
     rename(period_start = timestamp) %>%
     mutate(period_end = period_start + seconds(length * epoch_len)) %>%
