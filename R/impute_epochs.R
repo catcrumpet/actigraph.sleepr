@@ -45,7 +45,7 @@ has_missing_epochs <- function(agdb) {
   if (anyNA(agdb$timestamp)) return(TRUE)
 
   epoch_len <- attr(agdb, "epochlength")
-  has_missing_epochs_(agdb, epoch_len))
+  has_missing_epochs_(agdb, epoch_len)
 }
 
 has_missing_epochs_ <- function(data, epoch_len) {
