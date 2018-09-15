@@ -22,6 +22,7 @@ impute_epochs <- function(agdb, ...) {
 
   agdb %>% do(impute_epochs_(.data, selected))
 }
+
 impute_epochs_ <- function(data, selected) {
 
   impute <- function(x) pmax(round(na.spline(x)), 0)
@@ -31,6 +32,7 @@ impute_epochs_ <- function(data, selected) {
     inner_join(data, by = c("timestamp", selected)) %>%
     mutate_at(selected, impute)
 }
+
 #' Checks whether there are gaps in the time series
 #'
 #' The timestamps in the agd time series should run from \code{first(timestamp)} to \code{last(timestamp)} in increments of \code{epochlength} seconds. This function checks whether this holds or not. If the data is grouped (e.g., by subject), the check is performed for each group separately.
@@ -43,12 +45,12 @@ has_missing_epochs <- function(agdb) {
   if (anyNA(agdb$timestamp)) return(TRUE)
 
   epoch_len <- attr(agdb, "epochlength")
-  agdb <- agdb %>% do(has_missing_epochs_(.data, epoch_len))
-  any(agdb$missing)
+  agdb %>% 
+    has_missing_epochs_(epoch_len))
 }
+
 has_missing_epochs_ <- function(data, epoch_len) {
 
-  epochs <- seq(first(data$timestamp), last(data$timestamp),
-                by = epoch_len)
-  data_frame(missing = !identical(epochs, data$timestamp))
+  epochs <- seq(first(data$timestamp), last(data$timestamp), by = epoch_len)
+  any(!identical(epochs, data$timestamp))
 }
