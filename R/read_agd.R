@@ -31,14 +31,17 @@
 #' }
 #' @export
 read_agd <- function(file, tz = "UTC") {
-
   ticks_to_dttm <- function(ticks, tz) {
-    as.POSIXct(as.numeric(ticks) / 1e7,
+    if (as.numeric(ticks) == 0) {
+      return(as.POSIXct(NA))
+    }
+    as.POSIXct(as.numeric(ticks) / 1e7, 
                origin = "0001-01-01 00:00:00", tz)
   }
 
   agdb <- read_agd_raw(file, tz)
-  data <- agdb$data %>%
+  data <- 
+    agdb$data %>%
     rename_all(tolower) %>%
     rename(timestamp = datatimestamp) %>%
     mutate_if(is.numeric, as.integer)
@@ -46,12 +49,13 @@ read_agd <- function(file, tz = "UTC") {
   # The settings are stored in a table with settingName, settingValue
   # columns and so all settings are of type `character`, including the
   # timestamps. I typecast the most salient settings appropriately.
-  settings <- agdb$settings %>%
-    rename_all(tolower) %>%
-    select(settingname, settingvalue) %>%
-    spread(settingname, settingvalue) %>%
-    mutate_at(vars(matches("dateOfBirth")), ticks_to_dttm, tz = tz) %>%
-    mutate_at(vars(ends_with("time")), ticks_to_dttm, tz = tz) %>%
+  settings <- 
+    agdb$settings %>%
+    select(settingName, settingValue) %>% 
+    distinct() %>% 
+    spread(settingName, settingValue) %>%
+    mutate_at(vars(matches("dateOfBirth"), ends_with("time")), 
+              ticks_to_dttm, tz = tz) %>%
     mutate_at(vars(starts_with("epoch")), as.integer)
 
   tbl_agd(data, settings)
